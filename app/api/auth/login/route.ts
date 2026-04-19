@@ -1,0 +1,55 @@
+import { NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase'
+
+export async function POST(request: Request) {
+  try {
+    const { email, password } = await request.json()
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: 'Email y contraseña son requeridos' },
+        { status: 400 }
+      )
+    }
+
+    const { data: sessionData, error } = await supabaseAdmin.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 401 }
+      )
+    }
+
+    if (!sessionData.user) {
+      return NextResponse.json(
+        { error: 'Credenciales inválidas' },
+        { status: 401 }
+      )
+    }
+
+    const user = {
+      id: sessionData.user.id,
+      email: sessionData.user.email || email,
+      name: sessionData.user.user_metadata?.name || null,
+    }
+
+    return NextResponse.json({
+      success: true,
+      user,
+      session: {
+        access_token: sessionData.session?.access_token,
+        refresh_token: sessionData.session?.refresh_token,
+      },
+    })
+  } catch (error) {
+    console.error('Login error:', error)
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    )
+  }
+}
