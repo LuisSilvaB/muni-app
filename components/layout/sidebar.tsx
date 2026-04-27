@@ -9,22 +9,17 @@ import {
   LayoutDashboard,
   Building2,
   Store,
-  Map,
-  Trees,
   Layers,
-  Battery,
-  MapPin,
-  List,
   ClipboardList,
   ChevronLeft,
   ChevronRight,
-  FlaskConical,
   BarChart3,
   ChevronDown,
   ChevronUp,
   Settings,
   Factory,
-  Wheat,
+  AlertTriangle,
+  Monitor,
 } from "lucide-react";
 
 type NavItem = {
@@ -51,38 +46,20 @@ const navigation: NavCategory[] = [
     name: "Configuración",
     icon: Settings,
     items: [
-      { name: "Empresas", href: "/dashboard/roots", icon: Building2 },
-      { name: "Sucursales", href: "/dashboard/branches", icon: Store },
-      {
-        name: "Laboratorios",
-        href: "/dashboard/laboratories",
-        icon: FlaskConical,
-      },
+      { name: "Municipalidades", href: "/dashboard/roots", icon: Building2 },
     ],
   },
   {
-    name: "Infraestructura",
+    name: "Gestión",
     icon: Factory,
     items: [
-      { name: "Sistemas", href: "/dashboard/systems", icon: Layers },
-      { name: "Concesiones", href: "/dashboard/concessions", icon: Map },
-      { name: "Áreas", href: "/dashboard/areas", icon: Trees },
-      { name: "Baterías", href: "/dashboard/batteries", icon: Battery },
+      { name: "Áreas", href: "/dashboard/areas", icon: Layers },
+      { name: "Dispositivos", href: "/dashboard/devices", icon: Monitor },
+      { name: "Empleados", href: "/dashboard/employees", icon: Store },
+      { name: "Trámites", href: "/dashboard/documents", icon: ClipboardList },
+      { name: "Incidencias", href: "/dashboard/incidencias", icon: AlertTriangle },
     ],
-  },
-  {
-    name: "Producción",
-    icon: Wheat,
-    items: [
-      { name: "Lotes", href: "/dashboard/lots", icon: MapPin },
-      { name: "Líneas", href: "/dashboard/lines", icon: List },
-      {
-        name: "Operaciones",
-        href: "/dashboard/operations",
-        icon: ClipboardList,
-      },
-    ],
-  },
+  }
 ];
 
 function useExpandedCategories(pathname: string) {
@@ -191,7 +168,7 @@ export function Sidebar() {
           isCollapsed ? "justify-center px-2" : "gap-2 px-6",
         )}
       >
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 bg-gradient-to-br from-teal-600 to-teal-500 rounded-lg flex items-center justify-center flex-shrink-0">
           <svg
             className="w-5 h-5 text-white"
             fill="none"
@@ -248,7 +225,7 @@ export function Sidebar() {
             className={clsx(
               "flex items-center gap-3 px-3 py-2 mx-2 mb-1 rounded-lg text-sm font-medium transition-colors",
               isItemActive(item.href)
-                ? "bg-blue-50 text-blue-700"
+                ? "bg-teal-50 text-teal-700"
                 : "text-slate-700 hover:bg-slate-100",
             )}
           >
@@ -296,7 +273,7 @@ export function Sidebar() {
                     className={clsx(
                       "flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm font-medium transition-colors",
                       isItemActive(item.href)
-                        ? "bg-blue-50 text-blue-700"
+                        ? "bg-teal-50 text-teal-700"
                         : "text-slate-700 hover:bg-slate-100",
                     )}
                   >
@@ -316,7 +293,7 @@ export function Sidebar() {
                     className={clsx(
                       "flex items-center justify-center p-2 rounded-lg text-sm font-medium transition-colors",
                       isItemActive(item.href)
-                        ? "bg-blue-50 text-blue-700"
+                        ? "bg-teal-50 text-teal-700"
                         : "text-slate-700 hover:bg-slate-100",
                     )}
                     title={item.name}

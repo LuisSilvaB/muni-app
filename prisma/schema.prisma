@@ -8,9 +8,240 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique @db.VarChar(255)
+  name      String?  @db.VarChar(255)
+  position  String?  @db.VarChar(100)
+  phone     String?  @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+userRoots UserRoot[]
+  userAreas UserArea[]
+  reportedIncidents Incident[] @relation("ReportedBy")
+  assignedIncidents Incident[] @relation("AssignedTo")
+
+  @@map("users")
+}
+
+model Root {
+  id        String    @id @default(uuid()) @db.Uuid
+  isMain    Boolean   @default(true) @map("is_main")
+  name      String    @db.VarChar(255)
+  ruc       String?   @db.VarChar(20)
+  address   String?   @db.VarChar(500)
+  phone     String?   @db.VarChar(50)
+  logoUrl   String?   @map("logo_url") @db.VarChar(500)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  userRoots UserRoot[]
+  roles     Role[]
+  areas     Area[]
+  devices   Device[]
+  incidents Incident[]
+
+  @@unique([ruc, deletedAt])
+  @@index([deletedAt])
+  @@map("roots")
+}
+
+model UserRoot {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  rootId    String   @map("root_id") @db.Uuid
+  roleId    String   @map("role_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  root      Root     @relation(fields: [rootId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  permissions UserRootPermission[]
+
+  @@unique([userId, rootId])
+  @@map("user_roots")
+}
+
+model UserArea {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  areaId    String   @map("area_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  area Area @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, areaId])
+  @@map("user_areas")
+}
+
+model Role {
+  id        String   @id @default(uuid()) @db.Uuid
+  rootId    String   @map("root_id") @db.Uuid
+  name      String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  root      Root       @relation(fields: [rootId], references: [id], onDelete: Cascade)
+  userRoots UserRoot[]
+
+  @@unique([rootId, name])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(100)
+  key         String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  userRootPermissions UserRootPermission[]
+
+  @@map("permissions")
+}
+
+model UserRootPermission {
+  id           String     @id @default(uuid()) @db.Uuid
+  userRootId   String     @map("user_root_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  userRoot     UserRoot   @relation(fields: [userRootId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userRootId, permissionId])
+  @@map("user_root_permissions")
+}
+
+model Area {
+  id          String    @id @default(uuid()) @db.Uuid
+  rootId      String    @map("root_id") @db.Uuid
+  name        String    @db.VarChar(255)
+  code        String?   @db.VarChar(50)
+  description String?   @db.VarChar(500)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  root      Root       @relation(fields: [rootId], references: [id], onDelete: Cascade)
+  userAreas UserArea[]
+  devices   Device[]
+  incidents Incident[]
+
+  @@unique([rootId, code])
+  @@index([deletedAt])
+  @@map("areas")
+}
+
+enum DeviceType {
+  COMPUTER
+  PRINTER
+  SERVER
+  NETWORK
+  OTHER
+}
+
+enum DeviceStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+model Device {
+  id             String       @id @default(uuid()) @db.Uuid
+  rootId         String       @map("root_id") @db.Uuid
+  areaId         String       @map("area_id") @db.Uuid
+  name           String       @db.VarChar(255)
+  type           DeviceType   @default(COMPUTER)
+  serialNumber   String?      @map("serial_number") @db.VarChar(100)
+  brand          String?      @db.VarChar(100)
+  model          String?      @db.VarChar(100)
+  status         DeviceStatus @default(ACTIVE)
+  ipAddress      String?      @map("ip_address") @db.VarChar(50)
+  purchaseDate   DateTime?    @map("purchase_date") @db.Date
+  warrantyExpiry DateTime?    @map("warranty_expiry") @db.Date
+  notes          String?      @db.VarChar(1000)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?    @map("deleted_at") @db.Timestamptz(6)
+
+  root      Root       @relation(fields: [rootId], references: [id], onDelete: Cascade)
+  area      Area       @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  incidents Incident[]
+
+  @@index([deletedAt])
+  @@map("devices")
+}
+
+enum IncidentType {
+  HARDWARE
+  SOFTWARE
+  NETWORK
+  POWER
+  OTHER
+}
+
+enum IncidentPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Incident {
+  id           String           @id @default(uuid()) @db.Uuid
+  rootId       String           @map("root_id") @db.Uuid
+  deviceId     String           @map("device_id") @db.Uuid
+  areaId       String           @map("area_id") @db.Uuid
+  reportedById String           @map("reported_by_id") @db.Uuid
+  assignedToId String?          @map("assigned_to_id") @db.Uuid
+  type         IncidentType     @default(HARDWARE)
+  priority     IncidentPriority @default(MEDIUM)
+  status       IncidentStatus   @default(OPEN)
+  description  String           @db.VarChar(2000)
+  solution     String?          @db.VarChar(2000)
+  observations String?          @db.VarChar(1000)
+  location     String?          @db.VarChar(255)
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  resolvedAt   DateTime?        @map("resolved_at") @db.Timestamptz(6)
+  closedAt     DateTime?        @map("closed_at") @db.Timestamptz(6)
+  deletedAt    DateTime?        @map("deleted_at") @db.Timestamptz(6)
+
+  root        Root                 @relation(fields: [rootId], references: [id], onDelete: Cascade)
+  device      Device               @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  area        Area                 @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  reporter    User                 @relation("ReportedBy", fields: [reportedById], references: [id])
+  assignee    User?                @relation("AssignedTo", fields: [assignedToId], references: [id])
+  attachments IncidentAttachment[]
+
+  @@index([deletedAt])
+  @@map("incidents")
+}
+
+model IncidentAttachment {
+  id         String   @id @default(uuid()) @db.Uuid
+  incidentId String   @map("incident_id") @db.Uuid
+  fileUrl    String   @map("file_url") @db.VarChar(500)
+  fileName   String   @map("file_name") @db.VarChar(255)
+  fileType   String?  @map("file_type") @db.VarChar(100)
+  fileSize   Int?     @map("file_size") @db.Integer
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("incident_attachments")
 }

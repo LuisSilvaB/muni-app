@@ -5,38 +5,14 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-type RootWithMain = {
-  id: string;
-  name: string;
-  isMain?: boolean;
-};
-type BranchWithMain = {
-  id: string;
-  name: string;
-  isMain?: boolean;
-};
-
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui";
-import { Button } from "@/components/ui/button";
 
 export function Header() {
   const {
     user,
     signOut,
     roots,
-    branches,
     selectedRootId,
-    selectedBranchId,
-    setSelectedRoot,
-    setSelectedBranch,
     setRoots,
-    setBranches,
   } = useAuthStore();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,33 +35,12 @@ export function Header() {
   useEffect(() => {
     async function fetchBranches() {
       if (!selectedRootId) {
-        setBranches([]);
         return;
-      }
-
-      try {
-        const branchesResponse = await fetch(
-          `/api/branches?rootId=${selectedRootId}`,
-        );
-        if (branchesResponse.ok) {
-          const branchesData = await branchesResponse.json();
-          const branches = branchesData.branches || [];
-          setBranches(branches);
-
-          if (!selectedBranchId) {
-            const mainBranch = branches.find((b: BranchWithMain) => b.isMain);
-            if (mainBranch) {
-              setSelectedBranch(mainBranch.id);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching branches:", error);
       }
     }
 
     fetchBranches();
-  }, [selectedRootId, setBranches, setSelectedBranch]);
+  }, [selectedRootId]);
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -95,7 +50,6 @@ export function Header() {
   };
 
   const selectedRoot = roots.find((r) => r.id === selectedRootId);
-  const selectedBranch = branches.find((b) => b.id === selectedBranchId);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white px-6">
@@ -103,10 +57,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-slate-900 leading-tight">
-              {selectedRoot?.name || "Sin empresa"}
-            </span>
-            <span className="text-xs text-slate-500 leading-tight">
-              {selectedBranch?.name || "Todas las sucursales"}
+              {selectedRoot?.name || "Municipalidad no seleccionada"}
             </span>
           </div>
         </div>
@@ -118,7 +69,7 @@ export function Header() {
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-slate-100 transition-colors"
               >
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
                   {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                 </div>
                 <span className="text-sm font-medium text-slate-700 hidden sm:block">

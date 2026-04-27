@@ -22,7 +22,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50">
       <Navbar />
       
       <main className="flex items-center justify-center min-h-screen pt-16 px-4">
@@ -37,7 +37,7 @@ export default function RegisterPage() {
 
             <div className="mt-6 text-center text-sm text-slate-600">
               ¿Ya tienes cuenta?{" "}
-              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/login" className="text-teal-600 hover:text-teal-700 font-medium">
                 Inicia sesión
               </Link>
             </div>
