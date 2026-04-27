@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { IncidentsService } from '@/lib/incidents/services/incidents-service'
+import { createIncidentSchema } from '@/lib/incidents/models'
+
+const incidentsService = new IncidentsService()
 
 export async function GET(request: Request) {
   try {
@@ -9,23 +12,13 @@ export async function GET(request: Request) {
     const type = searchParams.get('type')
     const deviceId = searchParams.get('deviceId')
 
-    let query = supabaseAdmin
-      .from('incidents')
-      .select('*, device:devices(*), area:areas(*), reporter:users!reported_by_id(*), assignee:users!assigned_to_id(*)')
-      .order('created_at', { ascending: false })
+    const incidents = await incidentsService.getAll(rootId || undefined, {
+      status: status || undefined,
+      type: type || undefined,
+      deviceId: deviceId || undefined,
+    })
 
-    if (rootId) query = query.eq('root_id', rootId)
-    if (status) query = query.eq('status', status)
-    if (type) query = query.eq('type', type)
-    if (deviceId) query = query.eq('device_id', deviceId)
-
-    const { data, error } = await query
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    return NextResponse.json(data)
+    return NextResponse.json(incidents)
   } catch (error) {
     console.error('Incidents GET error:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
@@ -35,33 +28,26 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { deviceId, areaId, rootId, reportedById, type, priority, description, location } = body
-
-    if (!deviceId || !areaId || !rootId || !reportedById || !description) {
-      return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 })
+    
+    // Normalizar body de snake_case (si viene del form viejo) a camelCase (lo que espera el esquema Zod)
+    const normalizedBody = {
+      ...body,
+      rootId: body.rootId || body.root_id,
+      deviceId: body.deviceId || body.device_id,
+      areaId: body.areaId || body.area_id,
+      reportedById: body.reportedById || body.reported_by_id,
+      assignedToId: body.assignedToId || body.assigned_to_id,
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('incidents')
-      .insert({
-        device_id: deviceId,
-        area_id: areaId,
-        root_id: rootId,
-        reported_by_id: reportedById,
-        type,
-        priority,
-        description,
-        location,
-        status: 'OPEN',
-      })
-      .select()
-      .single()
+    const validation = createIncidentSchema.safeParse(normalizedBody)
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    if (!validation.success) {
+      return NextResponse.json({ error: "Invalid data", details: validation.error.format() }, { status: 400 })
     }
 
-    return NextResponse.json(data)
+    const incident = await incidentsService.create(validation.data)
+
+    return NextResponse.json(incident)
   } catch (error) {
     console.error('Incidents POST error:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })

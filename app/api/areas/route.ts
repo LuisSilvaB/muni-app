@@ -1,24 +1,17 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { AreasService } from '@/lib/areas/services/areas-service'
+import { createAreaSchema } from '@/lib/areas/models'
+
+const areasService = new AreasService()
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const rootId = searchParams.get('rootId')
 
-    let query = supabaseAdmin.from('areas').select('*').order('name')
+    const areas = await areasService.getAll(rootId || undefined)
 
-    if (rootId) {
-      query = query.eq('root_id', rootId)
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    return NextResponse.json(data)
+    return NextResponse.json(areas)
   } catch (error) {
     console.error('Areas GET error:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
@@ -28,23 +21,15 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { name, code, description, rootId } = body
+    const validation = createAreaSchema.safeParse(body)
 
-    if (!name || !rootId) {
-      return NextResponse.json({ error: 'Nombre y rootId son requeridos' }, { status: 400 })
+    if (!validation.success) {
+      return NextResponse.json({ error: "Invalid data", details: validation.error.format() }, { status: 400 })
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('areas')
-      .insert({ name, code, description, root_id: rootId })
-      .select()
-      .single()
+    const area = await areasService.create(validation.data)
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    return NextResponse.json(data)
+    return NextResponse.json(area)
   } catch (error) {
     console.error('Areas POST error:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })

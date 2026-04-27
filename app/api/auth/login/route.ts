@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: Request) {
   try {
@@ -31,10 +32,16 @@ export async function POST(request: Request) {
       )
     }
 
-    const user = {
-      id: sessionData.user.id,
-      email: sessionData.user.email || email,
-      name: sessionData.user.user_metadata?.name || null,
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true, name: true },
+    })
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Usuario no encontrado' },
+        { status: 404 }
+      )
     }
 
     return NextResponse.json({

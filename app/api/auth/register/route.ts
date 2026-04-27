@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: Request) {
   try {
@@ -33,11 +34,13 @@ export async function POST(request: Request) {
       )
     }
 
-    const user = {
-      id: authUser.user.id,
-      email: authUser.user.email || email,
-      name: name || null,
-    }
+    const user = await prisma.user.create({
+      data: {
+        id: authUser.user.id,
+        email,
+        name: name || null,
+      },
+    })
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { DevicesService } from '@/lib/devices/services/devices-service'
+import { updateDeviceSchema } from '@/lib/devices/models'
+
+const devicesService = new DevicesService()
 
 export async function GET(
   request: Request,
@@ -7,18 +10,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const device = await devicesService.getById(id)
 
-    const { data, error } = await supabaseAdmin
-      .from('devices')
-      .select('*, area:areas(*), root:roots(*)')
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    if (!device) {
+      return NextResponse.json({ error: 'Dispositivo no encontrado' }, { status: 404 })
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json(device)
   } catch (error) {
     console.error('Device GET error:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
@@ -32,19 +30,15 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await request.json()
+    const validation = updateDeviceSchema.safeParse(body)
 
-    const { data, error } = await supabaseAdmin
-      .from('devices')
-      .update(body)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    if (!validation.success) {
+      return NextResponse.json({ error: "Invalid data", details: validation.error.format() }, { status: 400 })
     }
 
-    return NextResponse.json(data)
+    const device = await devicesService.update(id, validation.data)
+
+    return NextResponse.json(device)
   } catch (error) {
     console.error('Device PATCH error:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
@@ -57,15 +51,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-
-    const { error } = await supabaseAdmin
-      .from('devices')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
+    await devicesService.delete(id)
 
     return NextResponse.json({ success: true })
   } catch (error) {

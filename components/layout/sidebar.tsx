@@ -46,7 +46,7 @@ const navigation: NavCategory[] = [
     name: "Configuración",
     icon: Settings,
     items: [
-      { name: "Municipalidades", href: "/dashboard/roots", icon: Building2 },
+      { name: "Municipalidades", href: "/dashboard/municipalidades", icon: Building2 },
     ],
   },
   {

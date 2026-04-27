@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { IncidentsService } from '@/lib/incidents/services/incidents-service'
+import { updateIncidentSchema } from '@/lib/incidents/models'
+
+const incidentsService = new IncidentsService()
 
 export async function GET(
   request: Request,
@@ -7,18 +10,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const incident = await incidentsService.getById(id)
 
-    const { data, error } = await supabaseAdmin
-      .from('incidents')
-      .select('*, device:devices(*), area:areas(*), reporter:users!reported_by_id(*), assignee:users!assigned_to_id(*), attachments(*)')
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    if (!incident) {
+      return NextResponse.json({ error: 'Incidente no encontrado' }, { status: 404 })
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json(incident)
   } catch (error) {
     console.error('Incident GET error:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
@@ -32,28 +30,32 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await request.json()
-
-    const updateData: Record<string, unknown> = { ...body }
-
-    if (body.status === 'RESOLVED' && body.solution) {
-      updateData.resolved_at = new Date().toISOString()
-    }
-    if (body.status === 'CLOSED') {
-      updateData.closed_at = new Date().toISOString()
-    }
-
-    const { data, error } = await supabaseAdmin
-      .from('incidents')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    
+    // Normalizar body
+    const normalizedBody = {
+      ...body,
+      deviceId: body.deviceId || body.device_id,
+      areaId: body.areaId || body.area_id,
+      assignedToId: body.assignedToId || body.assigned_to_id,
     }
 
-    return NextResponse.json(data)
+    const validation = updateIncidentSchema.safeParse(normalizedBody)
+
+    if (!validation.success) {
+      return NextResponse.json({ error: "Invalid data", details: validation.error.format() }, { status: 400 })
+    }
+
+    const updateData: any = { ...validation.data }
+    if (validation.data.status === 'RESOLVED' && validation.data.solution) {
+      updateData.resolved_at = new Date()
+    }
+    if (validation.data.status === 'CLOSED') {
+      updateData.closed_at = new Date()
+    }
+
+    const incident = await incidentsService.update(id, updateData)
+
+    return NextResponse.json(incident)
   } catch (error) {
     console.error('Incident PATCH error:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
@@ -66,15 +68,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-
-    const { error } = await supabaseAdmin
-      .from('incidents')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
+    await incidentsService.delete(id)
 
     return NextResponse.json({ success: true })
   } catch (error) {
