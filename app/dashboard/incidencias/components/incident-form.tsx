@@ -65,13 +65,13 @@ export function IncidentForm({ initialData, onSubmit, isPending }: IncidentFormP
   const form = useForm<IncidentFormData>({
     resolver: zodResolver(incidentSchema),
     defaultValues: {
-      deviceId: initialData?.device_id || '',
+      deviceId: initialData?.deviceId || '',
       type: (initialData?.type as IncidentType) || 'HARDWARE',
       priority: (initialData?.priority as IncidentPriority) || 'MEDIUM',
       status: (initialData?.status as IncidentStatus) || 'OPEN',
       description: initialData?.description || '',
       location: initialData?.location || '',
-      assignedToId: initialData?.assignee?.id || '',
+      assignedToId: initialData?.assignedToId || '',
       solution: initialData?.solution || '',
       observations: initialData?.observations || '',
     },
@@ -82,10 +82,10 @@ export function IncidentForm({ initialData, onSubmit, isPending }: IncidentFormP
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Dispositivo *</label>
-          <Select 
-            value={form.watch('deviceId')} 
-            onValueChange={(v) => form.setValue('deviceId', v)}
-          >
+           <Select 
+             value={form.watch('deviceId')} 
+             onValueChange={(v) => v && form.setValue('deviceId', v)}
+           >
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar equipo" />
             </SelectTrigger>
@@ -101,10 +101,10 @@ export function IncidentForm({ initialData, onSubmit, isPending }: IncidentFormP
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Tipo *</label>
-          <Select 
-            value={form.watch('type')} 
-            onValueChange={(v) => form.setValue('type', v as IncidentType)}
-          >
+           <Select 
+             value={form.watch('type')} 
+             onValueChange={(v) => v && form.setValue('type', v as IncidentType)}
+           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -117,10 +117,10 @@ export function IncidentForm({ initialData, onSubmit, isPending }: IncidentFormP
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Prioridad *</label>
-          <Select 
-            value={form.watch('priority')} 
-            onValueChange={(v) => form.setValue('priority', v as IncidentPriority)}
-          >
+           <Select 
+             value={form.watch('priority')} 
+             onValueChange={(v) => v && form.setValue('priority', v as IncidentPriority)}
+           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -148,10 +148,10 @@ export function IncidentForm({ initialData, onSubmit, isPending }: IncidentFormP
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium">Estado</label>
-          <Select 
-            value={form.watch('status')} 
-            onValueChange={(v) => form.setValue('status', v as IncidentStatus)}
-          >
+           <Select 
+             value={form.watch('status')} 
+             onValueChange={(v) => v && form.setValue('status', v as IncidentStatus)}
+           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>

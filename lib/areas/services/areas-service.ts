@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
-import type { Area, CreateArea } from "../models"
+import type { Area } from "../models"
+import { createAreaSchema } from "../models"
 
 export class AreasService {
   async getAll(rootId?: string) {
@@ -19,12 +20,13 @@ export class AreasService {
   }
 
   async create(data: any) {
+    const validated = createAreaSchema.parse(data)
     return prisma.area.create({
       data: {
-        name: data.name,
-        code: data.code,
-        description: data.description,
-        root_id: data.rootId,
+        name: validated.name,
+        code: validated.code,
+        description: validated.description,
+        rootId: validated.rootId,
       },
     })
   }

@@ -96,7 +96,7 @@ export default function IncidentDetailPage() {
               {incidentPrioritiesMap[incident.priority as IncidentPriority] || incident.priority}
             </Badge>
           </div>
-          <p className="text-slate-500">Reportada el {new Date(incident.created_at).toLocaleString()}</p>
+          <p className="text-slate-500">Reportada el {new Date(incident.createdAt).toLocaleString()}</p>
         </div>
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -164,11 +164,11 @@ export default function IncidentDetailPage() {
               <section>
                 <h3 className="text-sm font-semibold text-teal-700 uppercase tracking-wider mb-2">Solución Aplicada</h3>
                 <p className="text-slate-700 whitespace-pre-wrap">{incident.solution}</p>
-                {incident.resolved_at && (
-                  <span className="block text-xs text-slate-500 mt-2">
-                    Resuelto el {new Date(incident.resolved_at).toLocaleString()}
-                  </span>
-                )}
+                {incident.resolvedAt && (
+                   <span className="block text-xs text-slate-500 mt-2">
+                     Resuelto el {new Date(incident.resolvedAt).toLocaleString()}
+                   </span>
+                 )}
               </section>
             )}
             {incident.observations && (

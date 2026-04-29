@@ -14,8 +14,8 @@ export default function NewIncidentPage() {
   async function onSubmit(data: IncidentFormData) {
     const device = devices?.find(d => d.id === data.deviceId)
     const payload = {
-      device_id: data.deviceId,
-      area_id: device?.area_id || '',
+      deviceId: data.deviceId,
+      areaId: device?.areaId || '',
       type: data.type,
       priority: data.priority,
       status: data.status || 'OPEN',
@@ -23,7 +23,7 @@ export default function NewIncidentPage() {
       location: data.location || undefined,
       solution: data.solution || undefined,
       observations: data.observations || undefined,
-      assigned_to_id: data.assignedToId || undefined,
+      assignedToId: data.assignedToId || undefined,
     }
 
     createIncident.mutate(payload, {

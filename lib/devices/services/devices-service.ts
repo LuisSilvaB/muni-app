@@ -4,8 +4,8 @@ import type { Device } from "../models"
 export class DevicesService {
   async getAll(rootId?: string, areaId?: string) {
     const where: any = { deletedAt: null }
-    if (rootId) where.root_id = rootId
-    if (areaId) where.area_id = areaId
+    if (rootId) where.rootId = rootId
+    if (areaId) where.areaId = areaId
 
     return prisma.device.findMany({
       where,
@@ -26,12 +26,12 @@ export class DevicesService {
       data: {
         name: data.name,
         type: data.type,
-        serial_number: data.serialNumber,
+        serialNumber: data.serialNumber,
         brand: data.brand,
         model: data.model,
-        ip_address: data.ipAddress,
-        area_id: data.areaId,
-        root_id: data.rootId,
+        ipAddress: data.ipAddress,
+        areaId: data.areaId,
+        rootId: data.rootId,
         status: data.status,
         notes: data.notes,
       },
@@ -39,25 +39,9 @@ export class DevicesService {
   }
 
   async update(id: string, data: any) {
-    const updateData: any = { ...data }
-    
-    // Mapeo manual de camelCase a snake_case para campos de DB
-    if (data.serialNumber !== undefined) {
-      updateData.serial_number = data.serialNumber
-      delete updateData.serialNumber
-    }
-    if (data.ipAddress !== undefined) {
-      updateData.ip_address = data.ipAddress
-      delete updateData.ipAddress
-    }
-    if (data.areaId !== undefined) {
-      updateData.area_id = data.areaId
-      delete updateData.areaId
-    }
-
     return prisma.device.update({
       where: { id },
-      data: updateData,
+      data,
     })
   }
 

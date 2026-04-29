@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useIncidents, useDeleteIncident } from '@/lib/incidents/hooks'
-import type { Incident, IncidentType, IncidentStatus } from '@/lib/incidents/types'
+import type { Incident, IncidentType, IncidentStatus, IncidentPriority } from '@/lib/incidents/types'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +28,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import type { IncidentPriority, IncidentType, IncidentStatus } from '@/lib/incidents/types'
 
 const incidentTypesMap: Record<IncidentType, string> = {
   HARDWARE: 'Hardware',
@@ -169,7 +168,7 @@ export default function IncidenciasPage() {
                 </TableCell>
                 <TableCell className="font-medium text-slate-900">{incident.device?.name || '-'}</TableCell>
                 <TableCell className="text-slate-600">{incident.reporter?.name || incident.reporter?.email || '-'}</TableCell>
-                <TableCell className="text-slate-600">{new Date(incident.created_at).toLocaleDateString()}</TableCell>
+                <TableCell className="text-slate-600">{new Date(incident.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link href={`/dashboard/incidencias/${incident.id}`}>
